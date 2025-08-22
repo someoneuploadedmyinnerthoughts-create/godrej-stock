@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Stock Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #2c3e50 0%, #4ca1af 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .search-box, .sold-box, .add-box {
+            position: relative;
+            width: 300px;
+        }
+        
+        .search-box input, .sold-box input, .add-box input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .search-box input:focus, .sold-box input:focus, .add-box input:focus {
+            border-color: #4ca1af;
+            box-shadow: 0 0 0 2px rgba(76, 161, 175, 0.2);
+        }
+        
+        .search-box i, .sold-box i, .add-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+        
+        .sold-box input {
+            border-color: #ff6b6b;
+        }
+        
+        .sold-box i {
+            color: #ff6b6b;
+        }
+        
+        .add-box input {
+            border-color: #51cf66;
+        }
+        
+        .add-box i {
+            color: #51cf66;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            position: sticky;
+            top: 0;
+            background: linear-gradient(90deg, #2c3e50 0%, #4ca1af 100%);
+            color: white;
+            z-index: 10;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        th:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        th i {
+            margin-left: 5px;
+            font-size: 0.8rem;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+        
+        td {
+            padding: 15px;
+            color: #333;
+        }
+        
+        .stock-id {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .stock-name {
+            color: #4ca1af;
+        }
+        
+        .stock-quantity {
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .stock-quantity span {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: #e1f0ff;
+            color: #0066cc;
+            min-width: 40px;
+        }
+        
+        .low-stock span {
+            background: #ffe6e6;
+            color: #cc0000;
+        }
+        
+        .category-divider {
+            background-color: #e8f4f8;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .sell-btn, .add-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        
+        .sell-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .sell-btn:hover {
+            background: #ff5252;
+        }
+        
+        .add-btn {
+            background: #51cf66;
+            color: white;
+        }
+        
+        .add-btn:hover {
+            background: #40c057;
+        }
+        
+        .footer {
+            padding: 15px 20px;
+            text-align: center;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            max-width: 1400px;
+            width: 100%;
+        }
+        
+        .instructions h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            color: #555;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 1024px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .search-box, .sold-box, .add-box {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            th, td {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Hardware Stock Management System</h1>
+            <p class="subtitle">Track, sell, and add inventory items with ease</p>
+        </header>
+        
+        <div class="controls">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search hardware items...">
+            </div>
+            
+            <div class="sold-box">
+                <i class="fas fa-minus-circle"></i>
+                <input type="text" id="soldInput" placeholder="Enter item ID to mark as sold (e.g., 2249)">
+            </div>
+            
+            <div class="add-box">
+                <i class="fas fa-plus-circle"></i>
+                <input type="text" id="addInput" placeholder="Enter item ID to add stock (e.g., 2249-5)">
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">ID <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(1)">Item Name <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(2)">Quantity <i class="fas fa-sort"></i></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="stockTable">
+                    <!-- Table rows will be generated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            <p>Last updated: <span id="currentDate"></span> | Total items: <span id="totalItems">0</span></p>
+            <p>Low stock items: <span id="lowStockCount">0</span></p>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>How to Use This System:</h3>
+        <ul>
+            <li><strong>Search</strong>: Type in the search bar to filter items by ID, name, or quantity</li>
+            <li><strong>Sell Items</strong>: Type the item ID in the "sold" bar (e.g., "2249") and press Enter to reduce stock by 1</li>
+            <li><strong>Add Stock</strong>: Type the item ID followed by a dash and quantity in the "add" bar (e.g., "2249-5") and press Enter</li>
+            <li><strong>Quick Actions</strong>: Use the Sell/Add buttons next to each item for quick adjustments</li>
+            <li>Items in <span style="color: #cc0000;">red</span> are low in stock (5 or fewer items)</li>
+        </ul>
+    </div>
+
+    <script>
+        // Stock data with categories
+        let stockData = [
+            {category: "Hydraulic Items", items: [
+                {id: "2249", name: "hidro/175kg", quantity: 1, unit: "p"},
+                {id: "2247", name: "hidro/120kg", quantity: 2, unit: "p"},
+                {id: "2250", name: "hidro/200kg", quantity: 2, unit: "p"},
+                {id: "2248", name: "hidro/150kg", quantity: 9, unit: "p"}
+            ]},
+            {category: "Multi-Purpose Items", items: [
+                {id: "9350", name: "multi", quantity: 12, unit: "box"},
+                {id: "3099", name: "cupboard", quantity: 5, unit: "box"},
+                {id: "3098", name: "multi", quantity: 1, unit: "box"},
+                {id: "8000", name: "multi", quantity: 2, unit: "box"},
+                {id: "8817", name: "furniture", quantity: 1, unit: "box"}
+            ]},
+            {category: "Locks & Hardware", items: [
+                {id: "3282", name: "navtal/8lvr", quantity: 4, unit: "box"},
+                {id: "8149", name: "round/7lvr", quantity: 3, unit: "peti"},
+                {id: "8153", name: "squre/7lvr", quantity: 1, unit: "peti"},
+                {id: "8150", name: "round/10lvr", quantity: 3, unit: "box"},
+                {id: "5100", name: "navtal/3ton", quantity: 1, unit: "box"},
+                {id: "4070", name: "dura/90mm", quantity: 5, unit: "box"},
+                {id: "3281", name: "navtal/8lvr", quantity: 1, unit: "box"},
+                {id: "2775", name: "padlok/brass/5cm", quantity: 2, unit: "box"},
+                {id: "2777", name: "padlock/brass/7cm", quantity: 1, unit: "box"},
+                {id: "4066", name: "dura/70mm", quantity: 1, unit: "box"},
+                {id: "7301", name: "rimlock", quantity: 2, unit: "box"},
+                {id: "7169", name: "navtal/7lvr/4k", quantity: 2, unit: "box"},
+                {id: "6666", name: "candy", quantity: 1, unit: "box"},
+                {id: "4360", name: "3*16", quantity: 18, unit: "box"},
+                {id: "4362", name: "4*14", quantity: 10, unit: "p"},
+                {id: "4367", name: "6*12", quantity: 2, unit: "box"},
+                {id: "6086", name: "tribolt/autolock", quantity: 8, unit: "p"},
+                {id: "2284", name: "aldrop", quantity: 2, unit: "peti"},
+                {id: "5092", name: "kaditala", quantity: 9, unit: "p"},
+                {id: "5094", name: "kaditala", quantity: 1, unit: "p"},
+                {id: "2280", name: "aldrop/brass", quantity: 6, unit: "p"},
+                {id: "2282", name: "aldrop/ss", quantity: 8, unit: "p"},
+                {id: "4366", name: "5*12", quantity: 7, unit: "p"},
+                {id: "4364", name: "3*12", quantity: 12, unit: "p"},
+                {id: "6088", name: "tribolt/normal", quantity: 8, unit: "p"},
+                {id: "2341", name: "deadbolt/antik", quantity: 26, unit: "p"},
+                {id: "7303", name: "twinbolt/mini", quantity: 4, unit: "p"},
+                {id: "6195", name: "vertibolt/antik", quantity: 18, unit: "p"},
+                {id: "6383", name: "vertibolt/rosegold", quantity: 2, unit: "p"},
+                {id: "2339", name: "deadbolt", quantity: 1, unit: "p"},
+                {id: "4963", name: "10kg/hidro", quantity: 3, unit: "p"},
+                {id: "4960", name: "6kg/hidro", quantity: 4, unit: "p"}
+            ]},
+            {category: "Door Hardware", items: [
+                {id: "6800", name: "door closer", quantity: 4, unit: "box"},
+                {id: "9158", name: "narrow", quantity: 2, unit: "box"},
+                {id: "9159", name: "hookbolt", quantity: 1, unit: "box"},
+                {id: "5807", name: "cylindrical/brass", quantity: 16, unit: "p"},
+                {id: "5808", name: "cylindrical/ss", quantity: 16, unit: "p"}
+            ]},
+            {category: "Chains", items: [
+                {id: "7831", name: "10\"ch/45kg", quantity: 6, unit: "box"},
+                {id: "8208", name: "10\"ch/35", quantity: 2, unit: "box"},
+                {id: "8670", name: "10\"ch/35kg", quantity: 2, unit: "box"},
+                {id: "7832", name: "12\"ch/45kg", quantity: 2, unit: "box"},
+                {id: "8671", name: "12\"ch/35kg", quantity: 2, unit: "box"},
+                {id: "7083", name: "12\"ch/white", quantity: 1, unit: "box"},
+                {id: "7833", name: "14\"ch/45kg", quantity: 7, unit: "box"},
+                {id: "7084", name: "14\"ch/white", quantity: 1, unit: "box"},
+                {id: "8672", name: "14\"ch/35kg", quantity: 3, unit: "box"},
+                {id: "7834", name: "16\"ch/45kg", quantity: 6, unit: "box"},
+                {id: "8211", name: "16\"ch/35kg", quantity: 1, unit: "box"},
+                {id: "7085", name: "16\"ch/white", quantity: 1, unit: "box"},
+                {id: "7385", name: "18\"ch/45kg", quantity: 8, unit: "box"},
+                {id: "8212", name: "18\"ch/35kg", quantity: 4, unit: "box"},
+                {id: "7086", name: "18\"ch/white", quantity: 3, unit: "p"},
+                {id: "7836", name: "20\"ch/45kg", quantity: 1, unit: "box"},
+                {id: "7837", name: "22\"ch/45kg", quantity: 2, unit: "box"},
+                {id: "7838", name: "24\"ch", quantity: 3, unit: "box"},
+                {id: "6904", name: "24\"ch/white", quantity: 1, unit: "p"},
+                {id: "6905", name: "26\"ch/white", quantity: 3, unit: "p"}
+            ]},
+            {category: "Hinges & Fittings", items: [
+                {id: "7216", name: "0°/hidro", quantity: 2, unit: "box"},
+                {id: "7217", name: "8°/hidro", quantity: 3, unit: "box"},
+                {id: "7218", name: "15°/hidro", quantity: 2, unit: "box"},
+                {id: "6840", name: "bifold/2hole", quantity: 1, unit: "box"},
+                {id: "2227", name: "8°/4hole", quantity: 1, unit: "box"},
+                {id: "6934", name: "8°/4hole", quantity: 1, unit: "box"},
+                {id: "6933", name: "0°/4hole", quantity: 1, unit: "box"},
+                {id: "2228", name: "8°/4hole", quantity: 2, unit: "box"},
+                {id: "5069", name: "0°/4hole", quantity: 3, unit: "p"},
+                {id: "6841", name: "inset/2hole", quantity: 1, unit: "box"},
+                {id: "7213", name: "0°/normal", quantity: 3, unit: "p"},
+                {id: "5070", name: "8°/hidro/4hole", quantity: 0, unit: "p"},
+                {id: "7215", name: "15°/normal", quantity: 2, unit: "box"}
+            ]},
+            {category: "Towel Bars", items: [
+                {id: "3260", name: "4\"tb", quantity: 7, unit: "box"},
+                {id: "3261", name: "6\"tb", quantity: 3, unit: "box"},
+                {id: "3263", name: "10\"tb", quantity: 2, unit: "box"},
+                {id: "3262", name: "8\"tb", quantity: 3, unit: "box"},
+                {id: "2720", name: "4\"tb/alu", quantity: 2, unit: "box"},
+                {id: "2721", name: "6\"tb/alu", quantity: 2, unit: "box"},
+                {id: "2722", name: "8\"tb/alu", quantity: 1, unit: "box"}
+            ]}
+        ];
+
+        // Parse the stock data and generate table rows
+        function generateTable() {
+            const tableBody = document.getElementById('stockTable');
+            tableBody.innerHTML = '';
+            let totalItems = 0;
+            let lowStockCount = 0;
+            
+            stockData.forEach(category => {
+                // Add category row
+                const categoryRow = document.createElement('tr');
+                categoryRow.classList.add('category-divider');
+                categoryRow.innerHTML = `
+                    <td colspan="4">${category.category}</td>
+                `;
+                tableBody.appendChild(categoryRow);
+                
+                // Add items for this category
+                category.items.forEach(item => {
+                    const row = document.createElement('tr');
+                    if (item.quantity <= 5) {
+                        row.classList.add('low-stock');
+                        lowStockCount++;
+                    }
+                    
+                    row.innerHTML = `
+                        <td class="stock-id">${item.id}</td>
+                        <td class="stock-name">${item.name}</td>
+                        <td class="stock-quantity"><span>${item.quantity}${item.unit}</span></td>
+                        <td class="action-buttons">
+                            <button class="sell-btn" onclick="sellItem('${item.id}', 1)">Sell 1</button>
+                            <button class="add-btn" onclick="addStock('${item.id}', 1)">Add 1</button>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                    totalItems++;
+                });
+            });
+            
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('lowStockCount').textContent = lowStockCount;
+            
+            // Update date
+            const now = new Date();
+            document.getElementById('currentDate').textContent = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+        }
+
+        // Find item by ID
+        function findItemById(id) {
+            for (const category of stockData) {
+                for (const item of category.items) {
+                    if (item.id === id) {
+                        return item;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Sell item function
+        function sellItem(id, quantity = 1) {
+            const item = findItemById(id);
+            if (item) {
+                if (item.quantity >= quantity) {
+                    item.quantity -= quantity;
+                    if (item.quantity < 0) item.quantity = 0;
+                    generateTable();
+                    alert(`Sold ${quantity} of item ${id}. New quantity: ${item.quantity}`);
+                } else {
+                    alert(`Not enough stock for item ${id}. Only ${item.quantity} available.`);
+                }
+            } else {
+                alert(`Item with ID ${id} not found.`);
+            }
+        }
+
+        // Add stock function
+        function addStock(id, quantity = 1) {
+            const item = findItemById(id);
+            if (item) {
+                item.quantity += quantity;
+                generateTable();
+                alert(`Added ${quantity} to item ${id}. New quantity: ${item.quantity}`);
+            } else {
+                alert(`Item with ID ${id} not found.`);
+            }
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchText = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#stockTable tr');
+            
+            rows.forEach(row => {
+                if (row.classList.contains('category-divider')) {
+                    // Always show category rows
+                    row.style.display = '';
+                    return;
+                }
+                
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Sold input functionality
+        document.getElementById('soldInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const input = this.value.trim();
+                if (input) {
+                    sellItem(input, 1);
+                    this.value = '';
+                }
+            }
+        });
+
+        // Add input functionality
+        document.getElementById('addInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const input = this.value.trim();
+                if (input) {
+                    // Check if input contains quantity (e.g., "2249-5")
+                    const parts = input.split('-');
+                    const id = parts[0];
+                    const quantity = parts.length > 1 ? parseInt(parts[1]) : 1;
+                    
+                    if (!isNaN(quantity) && quantity > 0) {
+                        addStock(id, quantity);
+                    } else {
+                        addStock(id, 1);
+                    }
+                    this.value = '';
+                }
+            }
+        });
+
+        // Initialize the table on page load
+        window.onload = function() {
+            generateTable();
+            
+            // Add event listeners for sorting
+            document.querySelectorAll('th').forEach((header, index) => {
+                header.addEventListener('click', () => sortTable(index));
+            });
+        };
+
+        // Sort table function
+        function sortTable(column) {
+            alert(`Sorting by column ${column} would be implemented here. This is a placeholder.`);
+        }
+    </script>
+</body>
+</html>
